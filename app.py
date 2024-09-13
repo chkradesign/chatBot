@@ -38,7 +38,7 @@ def home():
             st.title("SQL Bot")
         with col2:
             if st.button("Logout"):
-                # st.session_state["logged_in"] = False
+                st.session_state["logged_in"] = False
                 st.session_state.messages = []
                 st.rerun()
 
