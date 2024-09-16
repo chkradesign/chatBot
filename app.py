@@ -5,29 +5,7 @@ from typing import List
 import sqlite3
 import pandas as pd
 
-# Function to check login credentials
-def verify_credentials(username, password):
-    conn = sqlite3.connect('users.db')
-    cursor = conn.cursor()
-    cursor.execute('''SELECT * FROM users WHERE username = ? AND password = ?''', (username, password))
-    user = cursor.fetchone()
-    conn.close()
-    return user
-
-# Login page
-def login():
-    # Create the users table with default credentials
-    st.title("Login Page")
-    username = st.text_input("Username")
-    password = st.text_input("Password", type="password")
-    if st.button("Login"):
-        if verify_credentials(username, password):
-            st.session_state["logged_in"] = True
-            st.rerun()
-        else:
-            st.error("Invalid username or password")
-
-def home():
+def main():
     # Setup the navbar
     st.set_page_config(layout="wide")
     navbar = st.container()
@@ -37,8 +15,7 @@ def home():
         with col1:
             st.title("SQL Bot")
         with col2:
-            if st.button("Logout"):
-                st.session_state["logged_in"] = False
+            if st.button("Refresh"):
                 st.session_state.messages = []
                 st.rerun()
 
@@ -192,18 +169,6 @@ def home():
         # add bot response to chat history
         st.session_state.messages.append({"role":"model", "parts":response})
         print(st.session_state.messages)
-
-# Main function
-def main():
-    home()
-
-    if "logged_in" not in st.session_state:
-        st.session_state["logged_in"] = False
-
-    if st.session_state["logged_in"]:
-        home()
-    else:
-        login()
 
 if __name__ == '__main__':
     main()
