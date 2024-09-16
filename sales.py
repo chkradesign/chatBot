@@ -10,118 +10,193 @@ cursor = connection.cursor()
 cursor.execute('DROP TABLE IF EXISTS COMMISSIONS')
 cursor.execute('DROP TABLE IF EXISTS AGENTS')
 cursor.execute('DROP TABLE IF EXISTS SALES')
+cursor.execute('DROP TABLE IF EXISTS MONTHLY_TARGETS')
+cursor.execute('DROP TABLE IF EXISTS CUSTOMER_FEEDBACK')
 
 # Create COMMISSIONS table
 cursor.execute('''CREATE TABLE COMMISSIONS (
-    TRANSACTION_TYPE VARCHAR(20),
-    CHARGEBACK_CODE VARCHAR(10),
+    PRODUCT VARCHAR(20),
     POLICY_NUMBER INT PRIMARY KEY,
-    COMM_AMOUNT DECIMAL(10,2),
-    COMM_PERCENT DECIMAL(5,2),
-    COMM_GENERATED_DATE DATE
+    COMM_AMOUNT DECIMAL(10,2)
 );''')
 
 # Create AGENTS table
 cursor.execute('''CREATE TABLE AGENTS (
     AGENT_ID INT PRIMARY KEY,
     AGENT_NAME VARCHAR(255),
-    POLICY_ISSUING_STATE VARCHAR(2),
-    POLICY_NUMBER INT,
-    FOREIGN KEY (POLICY_NUMBER) REFERENCES COMMISSIONS(POLICY_NUMBER)
+    POLICY_ISSUING_STATE VARCHAR(2)
+   
 );''')
 
 # Create SALES table
 cursor.execute('''CREATE TABLE SALES (
+    SALE_ID VARCHAR(20),
+    AGENT_ID INT,
+    POLICY_NUMBER INT,
     BILLING_FREQUENCY VARCHAR(20),
     BILLING_OPTION VARCHAR(20),
-    POLICY_NUMBER INT,
     POLICY_ISSUE_DATE DATE,
     PRODUCT VARCHAR(50),
-    EXPECTED_PREMIUM_AMOUNT DECIMAL(10,2),
+    PREMIUM_AMOUNT DECIMAL(10,2),
     FOREIGN KEY (POLICY_NUMBER) REFERENCES COMMISSIONS(POLICY_NUMBER)
+);''')
 
+#CREATE MONTHLY_TARGETS TABLE 
+cursor.execute('''CREATE TABLE MONTHLY_TARGETS (
+    AGENT_ID INT,
+    MONTH VARCHAR(20),
+    TARGET_AMOUNT DECIMAL(10,2),
+    FOREIGN KEY (AGENT_ID) REFERENCES AGENTS(AGENT_ID)
+);''')
+
+#CREATE CUSTOMER_FEEDBACK TABLE 
+cursor.execute('''CREATE TABLE CUSTOMER_FEEDBACK (
+    AGENT_ID INT,
+    CUSTOMER_ID INT,
+    FEEDBACK VARCHAR(255),
+    RATING INT,
+    FOREIGN KEY (AGENT_ID) REFERENCES AGENTS(AGENT_ID)
 );''')
 
 # COMMISSIONS table details
 Commissions_Details = [
-    ("New Business", "", 1001, 500.00, 10.00, "2024-01-15"),
-    ("Renewal", "", 1002, 250.00, 5.00, "2024-04-01"),
-    ("Chargeback", "CB123", 1003, -100.00, 0.00, "2024-06-10"),
-    ("New Business", "", 1004, 750.00, 12.00, "2024-02-28"),
-    ("Renewal", "", 1005, 300.00, 6.00, "2024-05-15"),
-    ("New Business", "", 1006, 450.00, 9.00, "2024-03-05"),
-    ("Chargeback", "CB456", 1007, -150.00, 0.00, "2024-07-12"),
-    ("Renewal", "", 1008, 200.00, 4.00, "2024-01-25"),
-    ("New Business", "", 1009, 600.00, 11.00, "2024-06-20"),
-    ("Renewal", "", 1010, 350.00, 7.00, "2024-03-18"),
-    ("Chargeback", "CB789", 1011, -200.00, 0.00, "2024-04-05"),
-    ("New Business", "", 1012, 800.00, 13.00, "2024-07-01"),
-    ("Renewal", "", 1013, 400.00, 8.00, "2024-02-12"),
-    ("Chargeback", "CB101", 1014, -120.00, 0.00, "2024-05-25"),
-    ("New Business", "", 1015, 900.00, 14.00, "2024-01-30"),
-    ("Renewal", "", 1016, 450.00, 9.00, "2024-04-10"),
-    ("Chargeback", "CB112", 1017, -180.00, 0.00, "2024-06-15"),
-    ("New Business", "", 1018, 1000.00, 15.00, "2024-02-15"),
-    ("Renewal", "", 1019, 500.00, 10.00, "2024-05-01"),
-    ("Chargeback", "CB123", 1020, -250.00, 0.00, "2024-07-20")
+    ("Universal Life Insurance", 1001, 500.00),
+    ("Whole Life Insurance", 1002, 250.00),
+    ("Term Life Insurance", 1003, 1000.00)
 ]
 
 # Insert the rows into the COMMISSIONS table
-cursor.executemany("INSERT INTO COMMISSIONS (TRANSACTION_TYPE, CHARGEBACK_CODE, POLICY_NUMBER, COMM_AMOUNT, COMM_PERCENT, COMM_GENERATED_DATE) VALUES (?, ?, ?, ?, ?, ?)", Commissions_Details)
+cursor.executemany("INSERT INTO COMMISSIONS (PRODUCT, POLICY_NUMBER, COMM_AMOUNT) VALUES (?, ?, ?)", Commissions_Details)
 
 # Define the Agent_Details to be inserted
 Agent_Details = [
-    (101, "John Doe", "CA", 1001),
-    (102, "Jane Smith", "NY", 1002),
-    (103, "Alex Brown", "TX", 1003),
-    (104, "Emily Davis", "FL", 1004),
-    (105, "Michael Johnson", "CA", 1005),
-    (106, "Sarah Miller", "NY", 1006),
-    (107, "David Wilson", "TX", 1007),
-    (108, "Olivia Carter", "FL", 1008),
-    (109, "William Anderson", "CA", 1009),
-    (110, "Jennifer Lopez", "NY", 1010),
-    (111, "Matthew Lee", "TX", 1011),
-    (112, "Ava Miller", "FL", 1012),
-    (113, "Christopher Evans", "CA", 1013),
-    (114, "Sophia Rodriguez", "NY", 1014),
-    (115, "Daniel Brown", "TX", 1015),
-    (116, "Isabella Johnson", "FL", 1016),
-    (117, "Ethan Davis", "CA", 1017),
-    (118, "Mia Miller", "NY", 1018),
-    (119, "Jacob Wilson", "TX", 1019),
-    (120, "Charlotte Carter", "FL", 1020)
+    (101, "John Doe", "CA"),
+    (102, "Jane Smith", "NY"),
+    (103, "Alex Brown", "TX"),
+    (104, "Emily Davis", "FL"),
+    (105, "Michael Johnson", "CA"),
+    (106, "Sarah Miller", "NY"),
+    (107, "David Wilson", "TX"),
+    (108, "Olivia Carter", "FL"),
+    (109, "William Anderson", "CA"),
+    (110, "Jennifer Lopez", "NY"),
+    (111, "Matthew Lee", "TX"),
+    (112, "Ava Miller", "FL"),
+    (113, "Christopher Evans", "CA"),
+    (114, "Sophia Rodriguez", "NY"),
+    (115, "Daniel Brown", "TX"),
+    (116, "Isabella Johnson", "FL"),
+    (117, "Ethan Davis", "CA"),
+    (118, "Mia Miller", "NY"),
+    (119, "Jacob Wilson", "TX"),
+    (120, "Charlotte Carter", "FL")
 ]
 
 # Insert the rows into the AGENTS table
-cursor.executemany("INSERT INTO AGENTS (AGENT_ID, AGENT_NAME, POLICY_ISSUING_STATE, POLICY_NUMBER) VALUES (?, ?, ?, ?)", Agent_Details)
+cursor.executemany("INSERT INTO AGENTS (AGENT_ID, AGENT_NAME, POLICY_ISSUING_STATE) VALUES (?, ?, ?)", Agent_Details)
 
 # Define the Sales_Details to be inserted
 Sales_Details = [
-    ("Monthly", "Credit Card", 1001, "2024-01-01", "Term Life Insurance", 100.00),
-    ("Annual", "Bank Draft", 1002, "2024-03-15", "Whole Life Insurance", 2000.00),
-    ("Quarterly", "Direct Bill", 1003, "2024-05-05", "Universal Life Insurance", 350.00),
-    ("Semi-Annually", "Credit Card", 1004, "2024-02-10", "Variable Universal Life", 1500.00),
-    ("Monthly", "Bank Draft", 1005, "2024-04-15", "Simplified Issue Life", 280.00),
-    ("Annual", "Direct Bill", 1006, "2024-01-25", "Term Life Insurance", 120.00),
-    ("Quarterly", "Credit Card", 1007, "2024-06-10", "Whole Life Insurance", 2200.00),
-    ("Semi-Annually", "Bank Draft", 1008, "2024-03-05", "Universal Life Insurance", 380.00),
-    ("Monthly", "Direct Bill", 1009, "2024-05-20", "Variable Universal Life", 1600.00),
-    ("Annual", "Credit Card", 1010, "2024-02-18", "Simplified Issue Life", 300.00),
-    ("Quarterly", "Bank Draft", 1011, "2024-04-05", "Term Life Insurance", 140.00),
-    ("Semi-Annually", "Direct Bill", 1012, "2024-01-01", "Whole Life Insurance", 2400.00),
-    ("Monthly", "Credit Card", 1013, "2024-06-15", "Universal Life Insurance", 410.00),
-    ("Annual", "Bank Draft", 1014, "2024-03-20", "Variable Universal Life", 1700.00),
-    ("Quarterly", "Direct Bill", 1015, "2024-05-10", "Simplified Issue Life", 320.00),
-    ("Semi-Annually", "Credit Card", 1016, "2024-02-25", "Term Life Insurance", 160.00),
-    ("Monthly", "Bank Draft", 1017, "2024-04-18", "Whole Life Insurance", 2600.00),
-    ("Annual", "Direct Bill", 1018, "2024-01-12", "Universal Life Insurance", 440.00),
-    ("Quarterly", "Credit Card", 1019, "2024-06-05", "Variable Universal Life", 1800.00),
-    ("Semi-Annually", "Bank Draft", 1020, "2024-03-08", "Simplified Issue Life", 340.00)
+    ( "S001", 101, 1003, "Annual", "Credit Card", "2024-01-01", 10000.00),
+    ( "S002", 102, 1002, "Monthly", "Credit Card", "2024-01-01", 30000.00),
+    ( "S003", 103, 1001, "Quarterly", "Credit Card", "2024-01-01", 50000),
+    ( "S004", 104, 1002, "Annual", "Bank Draft", "2024-03-15", 20000),
+    ( "S005", 105, 1002, "Monthly", "Credit Card", "2024-01-01",  10000),
+    ( "S006", 106, 1003, "Monthly", "Credit Card", "2024-01-01", 51000),
+    ( "S007", 107, 1002, "Annual", "Bank Draft", "2024-03-15",  20000),
+    ( "S008", 108, 1003, "Quarterly", "Credit Card", "2024-01-01", 10000),
+    ( "S009", 109, 1002, "Annual", "Bank Draft", "2024-03-15",  24000),
+    ( "S010", 111, 1003, "Annual", "Credit Card", "2024-01-01",  10000),
+    ( "S011", 112, 1002, "Monthly", "Credit Card", "2024-01-01",  30000),
+    ( "S012", 113, 1003, "Quarterly", "Credit Card", "2024-01-01",  50000),
+    ( "S013", 114, 1002, "Annual", "Bank Draft", "2024-03-15",  20000),
+    ( "S014", 115, 1002, "Monthly", "Credit Card", "2024-01-01",  10000),
+    ( "S015", 116, 1003, "Monthly", "Credit Card", "2024-01-01", 51000),
+    ( "S016", 101, 1002, "Annual", "Bank Draft", "2024-03-15",  20000),
+    ( "S017", 101, 1003, "Quarterly", "Credit Card", "2024-01-01",  10000),
+    ( "S018", 101, 1002, "Annual", "Bank Draft", "2024-03-15", 24000),  
+    ( "S019", 101, 1003, "Annual", "Credit Card", "2024-01-01",  10000),
+    ( "S020", 102, 1002, "Monthly", "Credit Card", "2024-01-01", 30000),
+    ( "S021", 103, 1003, "Quarterly", "Credit Card", "2024-01-01", 50000),
+    ( "S022", 104, 1002, "Annual", "Bank Draft", "2024-03-15",  20000),
+    ( "S023", 105, 1002, "Monthly", "Credit Card", "2024-01-01", 10000),
+    ( "S024", 106, 1003, "Monthly", "Credit Card", "2024-01-01",  51000),
+    ( "S025", 107, 1002, "Annual", "Bank Draft", "2024-03-15",  20000),
+    ( "S026", 108, 1003, "Quarterly", "Credit Card", "2024-01-01",  10000),
+    ( "S027", 108, 1002, "Annual", "Bank Draft", "2024-03-15", 24000),
+    ( "S028", 111, 1003, "Annual", "Credit Card", "2024-01-01",  10000),
+    ( "S029", 114, 1002, "Monthly", "Credit Card", "2024-01-01", 30000),
+    ( "S030", 117, 1003, "Quarterly", "Credit Card", "2024-01-01",  50000),
+    ( "S031", 116, 1002, "Annual", "Bank Draft", "2024-03-15",  20000),
+    ( "S032", 115, 1002, "Monthly", "Credit Card", "2024-01-01",  10000),
+    ( "S033", 116, 1003, "Monthly", "Credit Card", "2024-01-01", 51000),
+    ( "S034", 105, 1002, "Annual", "Bank Draft", "2024-03-15", 20000),
+    ( "S035", 105, 1003, "Quarterly", "Credit Card", "2024-01-01", 10000),
+    ( "S036", 101, 1002, "Annual", "Bank Draft", "2024-03-15",  24000),
+    ( "S037", 101, 1003, "Annual", "Credit Card", "2024-01-01", 10000),
+    ( "S038", 102, 1002, "Monthly", "Credit Card", "2024-01-01",30000),
+    ( "S039", 103, 1003, "Quarterly", "Credit Card", "2024-01-01", 5000),
+    ( "S040", 104, 1002, "Annual", "Bank Draft", "2024-03-15", 20000),
+    ( "S041", 109, 1002, "Monthly", "Credit Card", "2024-01-01", 10000),
+    ( "S042", 106, 1003, "Monthly", "Credit Card", "2024-01-01",  51000),
+    ( "S043", 107, 1002, "Annual", "Bank Draft", "2024-03-15", 20000),
+    ( "S044", 108, 1003, "Quarterly", "Credit Card", "2024-01-01", 10000),
+    ( "S045", 109, 1002, "Annual", "Bank Draft", "2024-03-15",  240000),
+    ( "S046", 111, 1003, "Annual", "Credit Card", "2024-01-01",  10000),
+    ( "S047", 120, 1002, "Monthly", "Credit Card", "2024-01-01", 30000),
+    ( "S048", 115, 1003, "Quarterly", "Credit Card", "2024-01-01",50000),
+    ( "S049", 103, 1002, "Annual", "Bank Draft", "2024-03-15", 20000),
+    ( "S050", 115, 1002, "Monthly", "Credit Card", "2024-01-01", 10000),
+    ( "S051", 106, 1003, "Monthly", "Credit Card", "2024-01-01",  51000),
+    ( "S052", 120, 1002, "Annual", "Bank Draft", "2024-03-15", 20000),
+    ( "S053", 101, 1003, "Quarterly", "Credit Card", "2024-01-01",  10000),
+    ( "S054", 120, 1002, "Annual", "Bank Draft", "2024-03-15",  24000),  
 ]
 
 # Insert the rows into the SALES table
-cursor.executemany("INSERT INTO SALES (BILLING_FREQUENCY, BILLING_OPTION, POLICY_NUMBER, POLICY_ISSUE_DATE, PRODUCT, EXPECTED_PREMIUM_AMOUNT) VALUES (?, ?, ?, ?, ?, ?)", Sales_Details)
+cursor.executemany("INSERT INTO SALES (SALE_ID,AGENT_ID,POLICY_NUMBER, BILLING_FREQUENCY, BILLING_OPTION, POLICY_ISSUE_DATE, PREMIUM_AMOUNT) VALUES (?, ?, ?, ?, ?, ?, ?)", Sales_Details)
+
+Monthly_Targets_Details = [
+    (101, 'January', 100000.00),
+    (102, 'February', 100000.00),
+    (103, 'March', 100000.00),
+    (104, 'January', 90000.00),
+    (105, 'February', 90000.00),
+    (106, 'March', 90000.00),
+    (107, 'January', 80000.00),
+    (108, 'February', 80000.00),
+    (109, 'March', 80000.00),
+    (110, 'January', 110000.00),
+    (111, 'February', 110000.00),
+    (112, 'March', 110000.00)
+]
+
+cursor.executemany("INSERT INTO MONTHLY_TARGETS (AGENT_ID, MONTH, TARGET_AMOUNT) VALUES (?, ?, ?)", Monthly_Targets_Details)
+
+Customer_Feedback_Details = [
+    (101, 10011, 'Very helpful and knowledgeable. Helped me choose the best policy.', 5),
+    (102, 10012, 'Good service but response time could be improved.', 4),
+    (103, 10013, 'Friendly and professional. Explained all details clearly.', 5),
+    (104, 10014, 'Satisfactory service but faced some delays in processing.', 3),
+    (105, 10015, 'Excellent service. Very patient and answered all my questions.', 5),
+    (106, 10016, 'Good experience overall. Would recommend to others.', 4),
+    (107, 10017, 'Average service. Could improve on communication.', 3),
+    (108, 10018, 'Very efficient and quick. Made the process very easy for me.', 5),
+    (109, 10011, 'Very helpful and knowledgeable. Helped me choose the best policy.', 5),
+    (110, 10012, 'Good service but response time could be improved.', 4),
+    (111, 10013, 'Friendly and professional. Explained all details clearly.', 5),
+    (112, 10014, 'Satisfactory service but faced some delays in processing.', 3),
+    (113, 10015, 'Excellent service. Very patient and answered all my questions.', 5),
+    (114, 10016, 'Good experience overall. Would recommend to others.', 4),
+    (115, 10017, 'Average service. Could improve on communication.', 3),
+    (116, 10018, 'Very efficient and quick. Made the process very easy for me.', 5),
+    (117, 10011, 'Very helpful and knowledgeable. Helped me choose the best policy.', 5),
+    (118, 10012, 'Good service but response time could be improved.', 4),
+    (119, 10013, 'Friendly and professional. Explained all details clearly.', 5),
+    (120, 10041, 'Satisfactory service but faced some delays in processing.', 3),
+]
+
+cursor.executemany("INSERT INTO CUSTOMER_FEEDBACK (AGENT_ID, CUSTOMER_ID, FEEDBACK, RATING) VALUES (?, ?, ?, ?)", Customer_Feedback_Details)
 
 print("Database schema created successfully!")
 
