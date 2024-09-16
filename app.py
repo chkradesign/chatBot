@@ -60,18 +60,23 @@ def home():
 
 
     # Description of the database
-    description = """The SQL database has the name sales and represents the company information system for a company.
-    It uses three interconnected tables to manage agents(employees), their sales and commissions.
+    description = """The SQL database has the name sales and represents the company information system for a insurance company.
+    It uses five interconnected tables to manage agents(employees), their sales, monthly target, customer feedback and commissions.
     The AGENTS table stores information about the agents in the company, including a unique identifier (AGENT_ID),
     agent name (AGENT_NAME), state where the policy was issued which is a two letter code for the state name (POLICY_ISSUING_STATE), and the policy number (POLICY_NUMBER).
     It uses foreign key: POLICY_NUMBER referencing the COMMISSIONS table.
-    The SALES table stores information such as the billing frequency (BILLING_FREQUENCY), the type of billing it was (BILLING_OPTION),
-    policy number (POLICY_NUMBER), the date the policy was issued (POLICY_ISSUE_DATE), the type of policy it was (PRODUCT), and the expected premium amount for said policy (EXPECTED_PREMIUM_AMOUNT).
+    The SALES table stores information such as SalesId (SALES_ID), (AGENT_ID),
+    policy number (POLICY_NUMBER) and the billing frequency (BILLING_FREQUENCY), the type of billing it was (BILLING_OPTION),
+    the date the policy was issued (POLICY_ISSUE_DATE), Amount the product has been sold by the agent (PREMIUM_AMOUNT).
     It also uses foreign key: POLICY_NUMBER referencing the COMMISSIONS table.
-    The COMMISSIONS table has information about the commissions for the agents with primary key being the policy number (POLICY_NUMBER),
-    transaction type (TRANSACTION_TYPE), the chargeback code (CHARGEBACK_CODE), the commission amount (COMM_AMOUNT), the percentage of the total that was commission (COMM_PERCENT), and the date the commission was generated on (COMM_GENERATED_DATE)
+    The COMMISSIONS table has information about the commissions for the agents with the type of policy it was (PRODUCT), policy number (POLICY_NUMBER),
+    and the commission amount (COMM_AMOUNT).
+    The MONTHLY_TARGETS table has information about the monthy tagets to be acheived by the agents this table contains agentId (AGENT_ID) , month (MONTH), target to be acheived (TARGET_AMOUNT),
+    It uses foreign key: AGENT_ID referencing the AGENTS table.
+    The CUSTOMER_FEEDBACK table stores information about agents performance  such as Agentid (AGENT_ID),
+    CUSTOMER Id (CUSTOMER_ID) and the feedback provided by the customer for an agent (FEEDBACK), also the rating provided by customer based on the service  (RATING).
     AGENTS and SALES tables are related to the COMMISSIONS table through the POLICY_NUMBER foreign key.
-    This structure indicates that one policy (identified by POLICY_NUMBER) can have multiple commission records, multiple sales details, and is associated with one agent."""
+    This structure indicates that one policy (identified by POLICY_NUMBER) can have  multiple sales details, and is associated with an agent."""
 
     history: List[Content] = [
         Content(role=message["role"], parts=[Part.from_text(message["parts"])])
@@ -138,6 +143,20 @@ def home():
             FROM COMMISSIONS c
             INNER JOIN AGENTS a ON c.POLICY_NUMBER = a.POLICY_NUMBER
             WHERE c.CHARGEBACK_CODE IS NOT NULL;
+            \n Example 7 - Where does a agent does his business or which location he is from. 
+            SELECT AGENT_ID, AGENT_NAME, POLICY_ISSUING_STATE
+            FROM AGENTS;
+            \n Example 8 - Find the top performing agents based on targets acheived.
+            SELECT a.agent_id,a.agent_name,t.TARGET_AMOUNT,SUM(s.PREMIUM_AMOUNT) AS total_sales_amount,(SUM(s.PREMIUM_AMOUNT) / t.TARGET_AMOUNT) * 100 AS achieved amount
+            FROM agents a
+            JOIN MONTHLY_TARGETS t ON a.agent_id = t.agent_id
+            JOIN sales s ON a.agent_id = s.agent_id
+            WHERE a.agent_name = 'agent_name'
+            GROUP BY a.agent_id, a.agent_name, t.TARGET_AMOUNT;
+            \n Example 9 - How good is the agent relationship with customer.
+            SELECT AVG(RATING) AS average_rating
+            FROM Customer_Feedback_Details
+            WHERE AGENT_ID = '101';
             The SQL code should not have ``` or the word sql in beginning or end of sql in output also no further explanation of the code"""
 
             print("Needed connection")
